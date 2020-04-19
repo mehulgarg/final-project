@@ -1,0 +1,1 @@
+mesos-slave --work_dir=/home/mehul/work_dir --master=127.0.1.1:5050

@@ -1,0 +1,17 @@
+build
+.cproject
+autom4te.cache
+.settings
+.idea
+aclocal.m4
+compile
+config.guess
+config.sub
+configure
+depcomp
+install-sh
+ltmain.sh
+Makefile.in
+missing
+.project
+m4

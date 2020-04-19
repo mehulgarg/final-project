@@ -1,0 +1,12 @@
+{
+  "libraries": [
+    {
+      "file": "@abs_top_builddir@/.libs/libtestallocator.@LIB_EXT@",
+      "modules": [
+        {
+          "name": "CustomAllocatorModule"
+        }
+      ]
+    }
+  ]
+}
