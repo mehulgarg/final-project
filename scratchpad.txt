@@ -1,0 +1,1 @@
+java -Djava.library.path=/usr/local/lib -jar target/example-framework-1.0-SNAPSHOT-jar-with-dependencies.jar zk://localhost:2181/mesos

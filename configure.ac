@@ -178,4 +178,5 @@ AC_CHECK_HEADERS([boost/lexical_cast.hpp boost/functional/hash.hpp],
 
 # Create Modules JSON blobs.
 AC_CONFIG_FILES([allocator/module.json], [])
+AC_CONFIG_FILES([start_master.sh], [])
 AC_OUTPUT

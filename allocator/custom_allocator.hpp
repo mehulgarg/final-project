@@ -303,7 +303,9 @@ protected:
 
 	hashmap<FrameworkID, Framework> frameworks;
 
-	hashmap<std::string, std::vector<SlaveID>> partitonData;
+	hashmap<std::string, std::set<SlaveID>> partitionToSlave;
+
+	hashmap<SlaveID, std::string> slaveToPartition;
 
 	hashmap<FrameworkID, std::string> allocatedFrameworks;
 

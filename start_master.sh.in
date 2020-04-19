@@ -1,0 +1,1 @@
+mesos-master --work_dir=/var/lib/mesos --ip=127.0.1.1 --modules="file://@abs_top_builddir@/allocator/module.json" --allocator=CustomAllocatorModule
