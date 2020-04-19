@@ -108,6 +108,7 @@ void CustomAllocatorProcess::initialize(
 						const hashmap<SlaveID, UnavailableResources>&)> &inverseOfferCallback) {
 	initialized = true;
 	paused = false;
+	LOG(INFO) << Constants.green << "Custom Allocator Initialized" << Constants.reset;
 
 }
 

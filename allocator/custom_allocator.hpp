@@ -334,6 +334,16 @@ private:
 
 	bool paused;
 
+	struct constants {
+		const std::string red = "\033[0;31m";
+		const std::string green = "\033[0;32m";
+		const std::string yellow = "\033[0;33m";
+		const std::string blue = "\033[0;34m";
+		const std::string reset = "\033[0m";
+	};
+
+	struct constants Constants;
+
 	Option<Slave*> getSlave(const SlaveID& slaveId) const;
 	Option<Framework*> getFramework(const FrameworkID& frameworkId) const;
 
