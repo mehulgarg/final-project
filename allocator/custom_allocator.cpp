@@ -5,6 +5,10 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <fstream>
+
+#include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 
 #include <mesos/attributes.hpp>
 #include <mesos/resource_quantities.hpp>
@@ -36,6 +40,11 @@ using std::shared_ptr;
 using std::string;
 using std::vector;
 using std::weak_ptr;
+using std::fstream;
+using std::ifstream;
+using rapidjson::SizeType;
+
+using namespace rapidjson;
 
 using mesos::allocator::InverseOfferStatus;
 using mesos::allocator::Options;
@@ -108,6 +117,7 @@ void CustomAllocatorProcess::initialize(
 						const hashmap<SlaveID, UnavailableResources>&)> &inverseOfferCallback) {
 	initialized = true;
 	paused = false;
+	LOG(INFO) << Constants.green << "Custom Allocator Initialized" << Constants.reset;
 
 }
 
@@ -144,9 +154,11 @@ void CustomAllocatorProcess::recover(const int _expectedAgentCount,
 		CHECK(initialized);
 		CHECK_NOT_CONTAINS(frameworks, frameworkId);
 
+		getPartitionData();
+
 		frameworks.insert( { frameworkId, Framework(frameworkInfo, active) });
 
-		LOG(INFO) << "Added framework " << frameworkId;
+		LOG(INFO) << Constants.blue << "Added framework " << Constants.reset << Constants.yellow << frameworkId << Constants.reset;
 
 		if (active) {
 			allocate();
@@ -408,20 +420,10 @@ void CustomAllocatorProcess::recover(const int _expectedAgentCount,
 		Resources removedResources;
 
 		foreach (const ResourceConversion& conversion, conversions) {
-		// resources are consistent with agent's allocation in terms of
-		// shared resources. In other words, we should increase agent's
-		// total resources as well for those additional allocation we did
-		// for shared resources. However, that means we need to update the
-		// agent's total resources when performing allocation for shared
-		// resources (in `__allocate()`). For now, we detect "additional"
-		// allocation for shared resources by checking if a conversion has
-		// an empty `consumed` field.
 		if (conversion.consumed.empty()) {
 			continue;
 		}
 
-		// NOTE: For now, a resource conversion must either not change the resource
-		// quantities, or completely remove the consumed resources. See MESOS-8825.
 		if (conversion.converted.empty()) {
 			removedResources += conversion.consumed;
 		}
@@ -442,19 +444,6 @@ void CustomAllocatorProcess::recover(const int _expectedAgentCount,
 		CHECK(initialized);
 
 		Slave &slave = *CHECK_NOTNONE(getSlave(slaveId));
-
-		// It's possible for this 'apply' to fail here because a call to
-		// 'allocate' could have been enqueued by the allocator itself
-		// just before master's request to enqueue 'updateAvailable'
-		// arrives to the allocator.
-		//
-		//   Master -------R------------
-		//                  \----+
-		//                       |
-		//   Allocator --A-----A-U---A--
-		//                \___/ \___/
-		//
-		//   where A = allocate, R = reserve, U = updateAvailable
 		Try<Resources> updatedAvailable = slave.getAvailable().apply(operations);
 		if (updatedAvailable.isError()) {
 			VLOG(1)<< "Failed to update available resources on agent " << slaveId
@@ -583,17 +572,6 @@ void CustomAllocatorProcess::recover(const int _expectedAgentCount,
 			<< " filtered agent " << slaveId
 			<< " for " << timeout.get();
 
-			// Expire the filter after both an `allocationInterval` and the
-			// `timeout` have elapsed. This ensures that the filter does not
-			// expire before we perform the next allocation for this agent,
-			// see MESOS-4302 for more information.
-			//
-			// Because the next periodic allocation goes through a dispatch
-			// after `allocationInterval`, we do the same for `expire()`
-			// (with a helper `_expire()`) to achieve the above.
-			//
-			// TODO(alexr): If we allocated upon resource recovery
-			// (MESOS-3078), we would not need to increase the timeout here.
 			timeout = std::max(options.allocationInterval, timeout.get());
 		}
 
@@ -725,7 +703,32 @@ void CustomAllocatorProcess::recover(const int _expectedAgentCount,
 	}
 
 	void CustomAllocatorProcess::getPartitionData() {
-		LOG(INFO) << "Getting Partition Data";
+		ifstream ifs("partitions.json");
+		IStreamWrapper isw(ifs);
+
+		Document doc;
+		doc.ParseStream(isw);
+
+		const rapidjson::Value& partitions_array= doc["partitions"];
+
+		for (SizeType i = 0; i < partitions_array.Size(); i++) {
+			const rapidjson::Value& partitionIdValue = partitions_array[i]["id"];
+			const string partitionId = partitionIdValue.GetString();
+			const rapidjson::Value& slaves_array = partitions_array[i]["slaves"];
+
+			for (SizeType i = 0; i < slaves_array.Size(); i++) {
+				SlaveID slaveId = SlaveID();
+				slaveId.set_value(slaves_array[i].GetString());
+				if (partitionToSlave.contains(partitionId)) {
+					partitionToSlave[partitionId].insert(slaveId);
+				} else {
+					std::set<SlaveID> set;
+					set.insert(slaveId);
+					partitionToSlave.insert({partitionId, set});
+				}
+				slaveToPartition.insert({slaveId, partitionId});
+			}
+		}
 	}
 
 }

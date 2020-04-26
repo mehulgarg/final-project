@@ -1,0 +1,20 @@
+{
+    "partitions": [
+    {
+        "id":"1aad51ec-4090-45ba-855b-42f13588eb56",
+        "slaves": ["4fd95ef5-4125-47e9-97b5-02f9f7107947-S0", "4fd95ef5-4125-47e9-97b5-02f9f7107947-S1"]
+    },
+    {
+        "id":"42c30620-9c5b-4c67-af5b-11cb2bd49bfa",
+        "slaves": ["4fd95ef5-4125-47e9-97b5-02f9f7107947-S1"]
+    },
+    {
+        "id":"6a40678a-3a7f-4fb8-a0ef-2d5dbe42fbac",
+        "slaves": ["2d024f8a-355b-46e5-86d2-77031cbcaf39-S0"]
+    },
+    {
+        "id":"cc28a3bb-e1ed-4596-9fea-c56760aceacf",
+        "slaves": ["2d024f8a-355b-46e5-86d2-77031cbcaf39-S1"]
+    }
+]
+}
